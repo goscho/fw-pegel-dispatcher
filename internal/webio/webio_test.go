@@ -19,7 +19,7 @@ func TestRequester_RequestCurrentValues_ok(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	r := &webio.Requester{HTTP: httpclient.New(), URL: srv.URL}
+	r := webio.New(httpclient.New(), srv.URL)
 	v, err := r.RequestCurrentValues()
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +41,7 @@ func TestParseResponseBody_invalid(t *testing.T) {
 				_, _ = w.Write([]byte(body))
 			}))
 			t.Cleanup(srv.Close)
-			r := &webio.Requester{HTTP: httpclient.New(), URL: srv.URL}
+			r := webio.New(httpclient.New(), srv.URL)
 			_, err := r.RequestCurrentValues()
 			if err == nil {
 				t.Fatal("expected error")
@@ -57,7 +57,7 @@ func TestRequester_badStatus(t *testing.T) {
 		_, _ = w.Write([]byte("0,209 m;3,400 l/m²"))
 	}))
 	t.Cleanup(srv.Close)
-	r := &webio.Requester{HTTP: httpclient.New(), URL: srv.URL}
+	r := webio.New(httpclient.New(), srv.URL)
 	_, err := r.RequestCurrentValues()
 	if err == nil {
 		t.Fatal("expected error")

@@ -26,6 +26,14 @@ type Requester struct {
 	URL  string
 }
 
+// New returns a new Requester.
+func New(client *http.Client, url string) *Requester {
+	return &Requester{
+		HTTP: client,
+		URL:  url,
+	}
+}
+
 // RequestCurrentValues GETs the configured URL and parses the body (e.g. "0,209 m;0,000 l/m²").
 func (r *Requester) RequestCurrentValues() (Values, error) {
 	req, err := http.NewRequest(http.MethodGet, r.URL, nil)

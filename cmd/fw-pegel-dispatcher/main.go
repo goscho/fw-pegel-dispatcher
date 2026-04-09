@@ -29,23 +29,12 @@ func main() {
 	}
 
 	httpc := httpclient.New()
-	sched := &scheduler.Scheduler{
-		Log: logger,
-		WebIO: &webio.Requester{
-			HTTP: httpc,
-			URL:  cfg.WebIOURL,
-		},
-		ThingSpeak: &thingspeak.Client{
-			HTTP: httpc,
-			URL:  cfg.ThingSpeakAPIURL,
-			Key:  cfg.ThingSpeakAPIKey,
-		},
-		Website: &website.Client{
-			HTTP:    httpc,
-			BaseURL: cfg.PegelAPIBaseURL,
-			APIKey:  cfg.PegelAPIKey,
-		},
-	}
+	sched := scheduler.New(
+		logger,
+		webio.New(httpc, cfg.WebIOURL),
+		thingspeak.New(httpc, cfg.ThingSpeakAPIURL, cfg.ThingSpeakAPIKey),
+		website.New(httpc, cfg.PegelAPIBaseURL, cfg.PegelAPIKey),
+	)
 
 	c := cron.New(cron.WithSeconds())
 	if _, err := c.AddFunc(cfg.ScheduleCron, sched.UpdateValues); err != nil {

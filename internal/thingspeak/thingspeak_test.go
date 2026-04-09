@@ -34,7 +34,7 @@ func TestClient_AddEntry_success(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	c := &thingspeak.Client{HTTP: httpclient.New(), URL: srv.URL, Key: "123ABC"}
+	c := thingspeak.New(httpclient.New(), srv.URL, "123ABC")
 	id, err := c.AddEntry(1.456, 0.34)
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func TestClient_AddEntry_success(t *testing.T) {
 
 func TestClient_AddEntry_noFields(t *testing.T) {
 	t.Parallel()
-	c := &thingspeak.Client{HTTP: httpclient.New(), URL: "http://x", Key: "k"}
+	c := thingspeak.New(httpclient.New(), "http://x", "k")
 	_, err := c.AddEntry()
 	if err == nil {
 		t.Fatal("expected error")
@@ -80,7 +80,7 @@ func TestClient_AddEntry_errorZero(t *testing.T) {
 		_, _ = w.Write([]byte("0"))
 	}))
 	t.Cleanup(srv.Close)
-	c := &thingspeak.Client{HTTP: httpclient.New(), URL: srv.URL, Key: "k"}
+	c := thingspeak.New(httpclient.New(), srv.URL, "k")
 	_, err := c.AddEntry(0.1)
 	if err == nil {
 		t.Fatal("expected error")
@@ -93,7 +93,7 @@ func TestClient_AddEntry_errorWhitespaceZero(t *testing.T) {
 		_, _ = w.Write([]byte(" 0 "))
 	}))
 	t.Cleanup(srv.Close)
-	c := &thingspeak.Client{HTTP: httpclient.New(), URL: srv.URL, Key: "k"}
+	c := thingspeak.New(httpclient.New(), srv.URL, "k")
 	_, err := c.AddEntry(0.1)
 	if err == nil {
 		t.Fatal("expected error")
@@ -107,7 +107,7 @@ func TestClient_AddEntry_badHTTP(t *testing.T) {
 		_, _ = w.Write([]byte("123"))
 	}))
 	t.Cleanup(srv.Close)
-	c := &thingspeak.Client{HTTP: httpclient.New(), URL: srv.URL, Key: "k"}
+	c := thingspeak.New(httpclient.New(), srv.URL, "k")
 	_, err := c.AddEntry(1.4)
 	if err == nil {
 		t.Fatal("expected error")
@@ -120,7 +120,7 @@ func TestClient_AddEntry_nonNumericBody(t *testing.T) {
 		_, _ = w.Write([]byte("12.3"))
 	}))
 	t.Cleanup(srv.Close)
-	c := &thingspeak.Client{HTTP: httpclient.New(), URL: srv.URL, Key: "k"}
+	c := thingspeak.New(httpclient.New(), srv.URL, "k")
 	_, err := c.AddEntry(1.4)
 	if err == nil {
 		t.Fatal("expected error")

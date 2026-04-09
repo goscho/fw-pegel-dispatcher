@@ -53,7 +53,7 @@ func TestScheduler_allSuccess(t *testing.T) {
 	}}
 	ts := &fakeThingSpeak{id: 123}
 	ws := &fakeWebsite{}
-	s := &scheduler.Scheduler{Log: log, WebIO: wio, ThingSpeak: ts, Website: ws}
+	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
 	if len(ts.got) != 2 || ts.got[0] != 0.12 || ts.got[1] != 1 {
 		t.Fatalf("thingspeak got %#v", ts.got)
@@ -74,7 +74,7 @@ func TestScheduler_webioError(t *testing.T) {
 	wio := &fakeWebIO{err: io.EOF}
 	ts := &fakeThingSpeak{}
 	ws := &fakeWebsite{}
-	s := &scheduler.Scheduler{Log: log, WebIO: wio, ThingSpeak: ts, Website: ws}
+	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
 	if ts.got != nil {
 		t.Fatalf("thingSpeak called: %#v", ts.got)
@@ -94,7 +94,7 @@ func TestScheduler_thingSpeakError_stillCallsWebsite(t *testing.T) {
 	}}
 	ts := &fakeThingSpeak{err: io.EOF}
 	ws := &fakeWebsite{}
-	s := &scheduler.Scheduler{Log: log, WebIO: wio, ThingSpeak: ts, Website: ws}
+	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
 	if ws.got != 0.12 {
 		t.Fatalf("website got %#v", ws.got)
@@ -111,7 +111,7 @@ func TestScheduler_websiteError(t *testing.T) {
 	}}
 	ts := &fakeThingSpeak{id: 1}
 	ws := &fakeWebsite{err: io.EOF}
-	s := &scheduler.Scheduler{Log: log, WebIO: wio, ThingSpeak: ts, Website: ws}
+	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
 	if len(ts.got) != 2 || ts.got[0] != 0.12 || ts.got[1] != 0 {
 		t.Fatalf("thingspeak got %#v", ts.got)

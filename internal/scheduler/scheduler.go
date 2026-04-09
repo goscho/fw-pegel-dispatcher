@@ -30,6 +30,16 @@ type Scheduler struct {
 	Website    WebsiteUpdater
 }
 
+// New returns a new Scheduler.
+func New(log *slog.Logger, webIO WebIOReader, thingSpeak ThingSpeakWriter, website WebsiteUpdater) *Scheduler {
+	return &Scheduler{
+		Log:        log,
+		WebIO:      webIO,
+		ThingSpeak: thingSpeak,
+		Website:    website,
+	}
+}
+
 // UpdateValues runs one full update cycle (invoked on cron).
 func (s *Scheduler) UpdateValues() {
 	s.Log.Info("update started")

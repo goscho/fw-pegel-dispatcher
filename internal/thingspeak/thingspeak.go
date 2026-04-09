@@ -24,6 +24,15 @@ type Client struct {
 	Key  string
 }
 
+// New returns a new Client.
+func New(client *http.Client, url, key string) *Client {
+	return &Client{
+		HTTP: client,
+		URL:  url,
+		Key:  key,
+	}
+}
+
 // AddEntry sends field1..fieldN (up to 8) as form fields.
 func (c *Client) AddEntry(fields ...float32) (int64, error) {
 	if len(fields) < 1 {

@@ -22,6 +22,15 @@ type Client struct {
 	APIKey  string
 }
 
+// New returns a new Client.
+func New(client *http.Client, baseURL, apiKey string) *Client {
+	return &Client{
+		HTTP:    client,
+		BaseURL: baseURL,
+		APIKey:  apiKey,
+	}
+}
+
 // UpdateWebsite POSTs one gauge measurement to /api/pegel.
 func (c *Client) UpdateWebsite(waterLevel float32) error {
 	payload := addPegelRequest{

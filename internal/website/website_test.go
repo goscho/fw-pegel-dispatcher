@@ -55,7 +55,7 @@ func TestClient_UpdateWebsite_success(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	c := &website.Client{HTTP: httpclient.New(), BaseURL: srv.URL, APIKey: apiKey}
+	c := website.New(httpclient.New(), srv.URL, apiKey)
 	if err := c.UpdateWebsite(1.43); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestClient_UpdateWebsite_badStatus(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 	}))
 	t.Cleanup(srv.Close)
-	c := &website.Client{HTTP: httpclient.New(), BaseURL: srv.URL, APIKey: "s"}
+	c := website.New(httpclient.New(), srv.URL, "s")
 	err := c.UpdateWebsite(1)
 	if err == nil {
 		t.Fatal("expected error")

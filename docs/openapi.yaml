@@ -1,0 +1,180 @@
+openapi: 3.0.3
+info:
+  title: fw-pegel API
+  description: |
+    Store and retrieve water level (Pegel) sensor measurements.
+
+    - **GET** endpoints are public.
+    - **POST** `/api/pegel` requires the `X-API-Key` header (must match the server `API_KEY` environment variable).
+
+    All JSON responses use `Content-Type: application/json` (including error responses under the default Slim error handler configuration).
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Relative to the host serving the application
+
+tags:
+  - name: Pegel
+    description: Sensor readings
+
+paths:
+  /api/pegel:
+    get:
+      tags: [Pegel]
+      summary: Get latest reading
+      operationId: getLatestPegel
+      responses:
+        "200":
+          description: Latest sensor value for the configured sensor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LatestResponse"
+              example:
+                data:
+                  value: 2.3
+                  recorded_at: "2026-01-01 12:00:00"
+        "404":
+          description: No data exists for the sensor
+        "500":
+          description: Database or server error
+    post:
+      tags: [Pegel]
+      summary: Add a reading
+      description: |
+        Inserts a new measurement. `value` is the water level in meters (0–5).
+        `recorded_at` must be UTC ISO 8601 with a `Z` suffix; fractional seconds are allowed.
+      operationId: addPegelValue
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddPegelRequest"
+            example:
+              value: 2.5
+              recorded_at: "2026-01-01T12:00:00Z"
+      responses:
+        "201":
+          description: Reading stored successfully (response body is typically empty)
+        "400":
+          description: |
+            Validation error (missing fields, non-numeric value, value outside 0–5,
+            or `recorded_at` not matching the required ISO 8601 `Z` format).
+        "401":
+          description: Missing or invalid `X-API-Key`
+        "500":
+          description: Database or server error
+
+  /api/pegel/history:
+    get:
+      tags: [Pegel]
+      summary: List readings in a time range
+      description: |
+        Returns up to **2500** rows ordered by `recorded_at` ascending.
+        Query parameters `from` and `to` are required UTC ISO 8601 timestamps with a `Z` suffix;
+        `from` must be strictly before `to`.
+      operationId: getPegelHistory
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Range start (UTC, ISO 8601 with Z)
+          schema:
+            $ref: "#/components/schemas/Iso8601UtcZ"
+          example: "2026-01-01T09:00:00Z"
+        - name: to
+          in: query
+          required: true
+          description: Range end (UTC, ISO 8601 with Z)
+          schema:
+            $ref: "#/components/schemas/Iso8601UtcZ"
+          example: "2026-01-01T15:00:00Z"
+      responses:
+        "200":
+          description: Matching readings (may be an empty array)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryResponse"
+              example:
+                data:
+                  - value: 1.5
+                    recorded_at: "2026-01-01T10:00:00Z"
+                  - value: 2.3
+                    recorded_at: "2026-01-01T12:00:00Z"
+        "400":
+          description: |
+            Missing `from`/`to`, invalid format, invalid datetimes, or `from` not before `to`.
+        "500":
+          description: Database or server error
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    Iso8601UtcZ:
+      type: string
+      pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$'
+      description: UTC timestamp with Z suffix (optional fractional seconds), e.g. 2026-02-26T22:33:57.072Z
+
+    PegelReading:
+      type: object
+      required: [value, recorded_at]
+      properties:
+        value:
+          type: number
+          format: float
+          description: Water level in meters
+        recorded_at:
+          type: string
+          description: Timestamp as returned by the API (UTC)
+
+    LatestResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          allOf:
+            - $ref: "#/components/schemas/PegelReading"
+          description: |
+            Latest row for the sensor. `recorded_at` is returned in SQL datetime form
+            (`YYYY-MM-DD HH:MM:SS`), not rewritten to ISO 8601.
+
+    HistoryResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          maxItems: 2500
+          items:
+            type: object
+            required: [value, recorded_at]
+            properties:
+              value:
+                type: number
+                format: float
+              recorded_at:
+                type: string
+                description: UTC instant formatted as `YYYY-MM-DDTHH:MM:SSZ` (no fractional seconds in output)
+
+    AddPegelRequest:
+      type: object
+      required: [value, recorded_at]
+      properties:
+        value:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          description: Water level in meters
+        recorded_at:
+          $ref: "#/components/schemas/Iso8601UtcZ"

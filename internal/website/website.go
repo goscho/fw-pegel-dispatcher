@@ -44,7 +44,7 @@ func (c *Client) UpdateRainfall(rainfall float32) error {
 func (c *Client) update(value float32, path string) error {
 	payload := addPegelRequest{
 		Value:      value,
-		RecordedAt: time.Now().UTC().Format(time.RFC3339Nano),
+		RecordedAt: time.Now().UTC().Format(time.RFC3339),
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {

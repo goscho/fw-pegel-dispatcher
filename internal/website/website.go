@@ -31,17 +31,26 @@ func New(client *http.Client, baseURL, apiKey string) *Client {
 	}
 }
 
-// UpdateWebsite POSTs one gauge measurement to /api/pegel.
-func (c *Client) UpdateWebsite(waterLevel float32) error {
+// UpdateLevel POSTs stream level measurement to /api/pegel.
+func (c *Client) UpdateLevel(waterLevel float32) error {
+	return c.update(waterLevel, "/api/pegel")
+}
+
+// UpdateRainfall POSTs rainfall measurement to /api/rainfall.
+func (c *Client) UpdateRainfall(rainfall float32) error {
+	return c.update(rainfall, "/api/rainfall")
+}
+
+func (c *Client) update(value float32, path string) error {
 	payload := addPegelRequest{
-		Value:      waterLevel,
+		Value:      value,
 		RecordedAt: time.Now().UTC().Format(time.RFC3339Nano),
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("website marshal payload: %w", err)
 	}
-	endpoint := strings.TrimRight(c.BaseURL, "/") + "/api/pegel"
+	endpoint := strings.TrimRight(c.BaseURL, "/") + path
 
 	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {

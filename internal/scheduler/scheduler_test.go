@@ -32,15 +32,24 @@ func (f *fakeThingSpeak) AddEntry(fields ...float32) (int64, error) {
 }
 
 type fakeWebsite struct {
-	err    error
-	called bool
-	got    float32
+	errLevel    error
+	errRainfall error
+	calledLevel bool
+	gotLevel    float32
+	calledRain  bool
+	gotRain     float32
 }
 
-func (f *fakeWebsite) UpdateWebsite(gaugeLevel float32) error {
-	f.called = true
-	f.got = gaugeLevel
-	return f.err
+func (f *fakeWebsite) UpdateLevel(streamLevel float32) error {
+	f.calledLevel = true
+	f.gotLevel = streamLevel
+	return f.errLevel
+}
+
+func (f *fakeWebsite) UpdateRainfall(rainfall float32) error {
+	f.calledRain = true
+	f.gotRain = rainfall
+	return f.errRainfall
 }
 
 func TestScheduler_allSuccess(t *testing.T) {
@@ -58,11 +67,18 @@ func TestScheduler_allSuccess(t *testing.T) {
 	if len(ts.got) != 2 || ts.got[0] != 0.12 || ts.got[1] != 1 {
 		t.Fatalf("thingspeak got %#v", ts.got)
 	}
-	if ws.got != 0.12 {
-		t.Fatalf("website got %#v", ws.got)
+	if ws.gotLevel != 0.12 {
+		t.Fatalf("website level got %#v", ws.gotLevel)
+	}
+	if ws.gotRain != 1 {
+		t.Fatalf("website rainfall got %#v", ws.gotRain)
 	}
 	out := buf.String()
-	if !strings.Contains(out, "update started") || !strings.Contains(out, "update successful") {
+	if !strings.Contains(out, "update started") ||
+		!strings.Contains(out, "pegel update successful") ||
+		!strings.Contains(out, "Rainfall update successful") ||
+		!strings.Contains(out, "ThingSpeak update successful") ||
+		!strings.Contains(out, "update finished") {
 		t.Fatalf("log: %s", out)
 	}
 }
@@ -79,8 +95,8 @@ func TestScheduler_webioError(t *testing.T) {
 	if ts.got != nil {
 		t.Fatalf("thingSpeak called: %#v", ts.got)
 	}
-	if ws.called {
-		t.Fatalf("website called: %#v", ws.got)
+	if ws.calledLevel || ws.calledRain {
+		t.Fatalf("website called: level=%v, rain=%v", ws.calledLevel, ws.calledRain)
 	}
 }
 
@@ -96,8 +112,11 @@ func TestScheduler_thingSpeakError_stillCallsWebsite(t *testing.T) {
 	ws := &fakeWebsite{}
 	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
-	if ws.got != 0.12 {
-		t.Fatalf("website got %#v", ws.got)
+	if ws.gotLevel != 0.12 {
+		t.Fatalf("website level got %#v", ws.gotLevel)
+	}
+	if ws.gotRain != 1 {
+		t.Fatalf("website rainfall got %#v", ws.gotRain)
 	}
 }
 
@@ -110,13 +129,16 @@ func TestScheduler_websiteError(t *testing.T) {
 		Port2: webio.Value{Value: 0.4, Unit: "x"},
 	}}
 	ts := &fakeThingSpeak{id: 1}
-	ws := &fakeWebsite{err: io.EOF}
+	ws := &fakeWebsite{errLevel: io.EOF}
 	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
 	if len(ts.got) != 2 || ts.got[0] != 0.12 || ts.got[1] != 0 {
 		t.Fatalf("thingspeak got %#v", ts.got)
 	}
-	if ws.got != 0.12 {
-		t.Fatalf("website got %#v", ws.got)
+	if ws.gotLevel != 0.12 {
+		t.Fatalf("website level got %#v", ws.gotLevel)
+	}
+	if ws.gotRain != 0 {
+		t.Fatalf("website rainfall got %#v", ws.gotRain)
 	}
 }

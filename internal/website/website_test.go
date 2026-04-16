@@ -17,7 +17,7 @@ type addPegelRequest struct {
 	RecordedAt string  `json:"recorded_at"`
 }
 
-func TestClient_UpdateWebsite_success(t *testing.T) {
+func TestClient_UpdateLevel_success(t *testing.T) {
 	t.Parallel()
 	const apiKey = "123secret"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -56,19 +56,76 @@ func TestClient_UpdateWebsite_success(t *testing.T) {
 	t.Cleanup(srv.Close)
 
 	c := website.New(httpclient.New(), srv.URL, apiKey)
-	if err := c.UpdateWebsite(1.43); err != nil {
+	if err := c.UpdateLevel(1.43); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestClient_UpdateWebsite_badStatus(t *testing.T) {
+func TestClient_UpdateLevel_badStatus(t *testing.T) {
 	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}))
 	t.Cleanup(srv.Close)
 	c := website.New(httpclient.New(), srv.URL, "s")
-	err := c.UpdateWebsite(1)
+	err := c.UpdateLevel(1)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestClient_UpdateRainfall_success(t *testing.T) {
+	t.Parallel()
+	const apiKey = "123secret"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("method %s", r.Method)
+		}
+		if r.URL.Path != "/api/rainfall" {
+			t.Fatalf("path %s", r.URL.Path)
+		}
+		if got := r.Header.Get("X-API-Key"); got != apiKey {
+			t.Fatalf("X-API-Key %q", got)
+		}
+		if got := r.Header.Get("Content-Type"); got != "application/json" {
+			t.Fatalf("Content-Type %q", got)
+		}
+		b, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var payload addPegelRequest
+		if err := json.Unmarshal(b, &payload); err != nil {
+			t.Fatal(err)
+		}
+		if payload.Value != 2.5 {
+			t.Fatalf("value %v", payload.Value)
+		}
+		parsed, err := time.Parse(time.RFC3339Nano, payload.RecordedAt)
+		if err != nil {
+			t.Fatalf("recorded_at parse: %v", err)
+		}
+		if parsed.Location() != time.UTC {
+			t.Fatalf("recorded_at not UTC: %v", parsed.Location())
+		}
+		w.WriteHeader(http.StatusCreated)
+	}))
+	t.Cleanup(srv.Close)
+
+	c := website.New(httpclient.New(), srv.URL, apiKey)
+	if err := c.UpdateRainfall(2.5); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestClient_UpdateRainfall_badStatus(t *testing.T) {
+	t.Parallel()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	t.Cleanup(srv.Close)
+	c := website.New(httpclient.New(), srv.URL, "s")
+	err := c.UpdateRainfall(1)
 	if err == nil {
 		t.Fatal("expected error")
 	}

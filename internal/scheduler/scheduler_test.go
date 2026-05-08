@@ -64,13 +64,13 @@ func TestScheduler_allSuccess(t *testing.T) {
 	ws := &fakeWebsite{}
 	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
-	if len(ts.got) != 2 || ts.got[0] != 0.12 || ts.got[1] != 1 {
+	if len(ts.got) != 2 || ts.got[0] != 0.123 || ts.got[1] != 0.5 {
 		t.Fatalf("thingspeak got %#v", ts.got)
 	}
-	if ws.gotLevel != 0.12 {
+	if ws.gotLevel != 0.123 {
 		t.Fatalf("website level got %#v", ws.gotLevel)
 	}
-	if ws.gotRain != 1 {
+	if ws.gotRain != 0.5 {
 		t.Fatalf("website rainfall got %#v", ws.gotRain)
 	}
 	out := buf.String()
@@ -112,10 +112,10 @@ func TestScheduler_thingSpeakError_stillCallsWebsite(t *testing.T) {
 	ws := &fakeWebsite{}
 	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
-	if ws.gotLevel != 0.12 {
+	if ws.gotLevel != 0.123 {
 		t.Fatalf("website level got %#v", ws.gotLevel)
 	}
-	if ws.gotRain != 1 {
+	if ws.gotRain != 0.6 {
 		t.Fatalf("website rainfall got %#v", ws.gotRain)
 	}
 }
@@ -132,13 +132,13 @@ func TestScheduler_websiteError(t *testing.T) {
 	ws := &fakeWebsite{errLevel: io.EOF}
 	s := scheduler.New(log, wio, ts, ws)
 	s.UpdateValues()
-	if len(ts.got) != 2 || ts.got[0] != 0.12 || ts.got[1] != 0 {
+	if len(ts.got) != 2 || ts.got[0] != 0.123 || ts.got[1] != 0.4 {
 		t.Fatalf("thingspeak got %#v", ts.got)
 	}
-	if ws.gotLevel != 0.12 {
+	if ws.gotLevel != 0.123 {
 		t.Fatalf("website level got %#v", ws.gotLevel)
 	}
-	if ws.gotRain != 0 {
+	if ws.gotRain != 0.4 {
 		t.Fatalf("website rainfall got %#v", ws.gotRain)
 	}
 }

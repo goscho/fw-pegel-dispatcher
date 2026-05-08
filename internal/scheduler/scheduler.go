@@ -3,7 +3,6 @@ package scheduler
 import (
 	"log/slog"
 
-	"github.com/goscho/fw-pegel-dispatcher/internal/round"
 	"github.com/goscho/fw-pegel-dispatcher/internal/webio"
 )
 
@@ -64,8 +63,7 @@ func (s *Scheduler) UpdateValues() {
 }
 
 func (s *Scheduler) updateStreamLevel(v webio.Values) bool {
-	streamLevel := round.Float32(v.Port1.Value, 2)
-	if err := s.Website.UpdateLevel(streamLevel); err != nil {
+	if err := s.Website.UpdateLevel(v.Port1.Value); err != nil {
 		s.Log.Error("Updating failed. Exception while pushing data to Website Pegel API", "err", err)
 		return false
 	}
@@ -73,8 +71,7 @@ func (s *Scheduler) updateStreamLevel(v webio.Values) bool {
 }
 
 func (s *Scheduler) updateRainfall(v webio.Values) bool {
-	rainfall := round.Float32(v.Port2.Value, 0)
-	if err := s.Website.UpdateRainfall(rainfall); err != nil {
+	if err := s.Website.UpdateRainfall(v.Port2.Value); err != nil {
 		s.Log.Error("Updating failed. Exception while pushing data to Website Rainfall API", "err", err)
 		return false
 	}
@@ -82,8 +79,8 @@ func (s *Scheduler) updateRainfall(v webio.Values) bool {
 }
 
 func (s *Scheduler) updateThingSpeak(v webio.Values) bool {
-	streamGauge := round.Float32(v.Port1.Value, 2)
-	rainfall := round.Float32(v.Port2.Value, 0)
+	streamGauge := v.Port1.Value
+	rainfall := v.Port2.Value
 	if _, err := s.ThingSpeak.AddEntry(streamGauge, rainfall); err != nil {
 		s.Log.Error("Updating failed. Exception while pushing data to ThingSpeak", "err", err)
 		return false

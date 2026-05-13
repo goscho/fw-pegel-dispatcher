@@ -1,0 +1,37 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+
+  docker-build:
+    desc: Build docker image for linux/amd64 platform
+    cmds:
+      - task: build-image
+        vars:
+          PLATTFORM: linux/amd64
+
+  docker-build-arm:
+    desc: Build docker image for linux/arm64 platform
+    cmds:
+      - task: build-image
+        vars:
+          PLATTFORM: linux/arm64
+
+  build-image:
+    internal: true
+    #preconditions:
+    #  - sh: '[ `git status --porcelain=1 | wc -l` -eq 0 ]'
+    #    msg: Working directory is not clean. Please commit all changes to prevent untracked files in the docker build context.
+    vars:
+      CONTAINER_REGISTRY: registry.ffm.internal
+      IMAGE_NAME: fw-pegel-dispatcher
+      # holds the tag of the current commit or just the commit hash if no tag is present
+      GIT_TAG_OR_COMMIT:
+        sh: git describe --tags --exact-match 2>/dev/null || git log -n 1 --format=%h
+      IMAGE_TAG:
+        sh: echo {{.GIT_TAG_OR_COMMIT}}
+      FULL_NAME:
+        sh: echo "{{.CONTAINER_REGISTRY}}/{{.IMAGE_NAME}}:{{.IMAGE_TAG}}"
+    cmds:
+      - docker build --build-arg app_version={{.IMAGE_TAG}} --platform {{.PLATTFORM}} -t {{.FULL_NAME}} .

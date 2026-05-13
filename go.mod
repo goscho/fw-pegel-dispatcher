@@ -2,7 +2,4 @@ module github.com/goscho/fw-pegel-dispatcher
 
 go 1.26
 
-require (
-	github.com/robfig/cron/v3 v3.0.1
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1
-)
+require github.com/robfig/cron/v3 v3.0.1

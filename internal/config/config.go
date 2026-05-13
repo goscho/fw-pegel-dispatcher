@@ -16,7 +16,6 @@ type Config struct {
 	PegelAPIBaseURL  string
 	PegelAPIKey      string
 	ScheduleCron     string
-	LogDir           string
 }
 
 // Load reads configuration from environment variables.
@@ -28,13 +27,9 @@ func Load() (Config, error) {
 		PegelAPIBaseURL:  strings.TrimSpace(os.Getenv("PEGEL_API_BASE_URL")),
 		PegelAPIKey:      strings.TrimSpace(os.Getenv("PEGEL_API_KEY")),
 		ScheduleCron:     strings.TrimSpace(os.Getenv("SCHEDULE_CRON")),
-		LogDir:           strings.TrimSpace(os.Getenv("LOG_DIR")),
 	}
 	if c.ScheduleCron == "" {
 		c.ScheduleCron = defaultScheduleCron
-	}
-	if c.LogDir == "" {
-		c.LogDir = "."
 	}
 	var missing []string
 	if c.WebIOURL == "" {

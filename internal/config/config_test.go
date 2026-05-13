@@ -32,7 +32,7 @@ func TestLoad_ok(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.WebIOURL != "http://1.2.3.4/Single" || c.LogDir != "." {
+	if c.WebIOURL != "http://1.2.3.4/Single" {
 		t.Fatalf("%+v", c)
 	}
 	if c.ScheduleCron != "0 */5 * * * *" {

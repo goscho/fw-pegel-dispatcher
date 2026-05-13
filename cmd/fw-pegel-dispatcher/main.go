@@ -22,11 +22,7 @@ func main() {
 		slog.Error("config", "err", err)
 		os.Exit(1)
 	}
-	logger, err := logging.New(cfg.LogDir)
-	if err != nil {
-		slog.Error("logging", "err", err)
-		os.Exit(1)
-	}
+	logger := logging.New()
 
 	httpc := httpclient.New()
 	sched := scheduler.New(

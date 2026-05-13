@@ -113,7 +113,7 @@ docker run --rm \
   fw-pegel-dispatcher
 ```
 
-The container runs as non-root user (uid 1001). Logs are written to stdout in JSON format.
+The container runs as non-root user (uid 1001). Logs are sent to stdout.
 
 ## Testing
 
@@ -168,5 +168,5 @@ See [`.github/workflows/go.yml`](.github/workflows/go.yml).
 
 - **`internal/`** — enforced by the Go compiler; packages here cannot be imported by external modules.
 - **Interfaces at the consumer** — `internal/scheduler` defines `Requester`, `ThingSpeakService`, and `WebsiteUpdater`. The concrete client packages (`webio`, `thingspeak`, `website`) satisfy these interfaces implicitly. This makes the scheduler trivially unit-testable with plain struct mocks.
-- **Single external dependency** — [`github.com/robfig/cron/v3`](https://github.com/robfig/cron) for the cron scheduler. Everything else (HTTP, JSON handling, JSON logging) uses the Go standard library.
+- **Single external dependency** — [`github.com/robfig/cron/v3`](https://github.com/robfig/cron) for the cron scheduler. Everything else (HTTP, JSON handling, logging) uses the Go standard library.
 - **HTTP timeout** — all outbound requests use a shared `http.Client` with a 10-second connect and read timeout.

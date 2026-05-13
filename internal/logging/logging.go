@@ -1,34 +1,17 @@
 package logging
 
 import (
-	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
-
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// New returns a slog.Logger writing to stdout and a rolling file under logDir/logs/app.log.
-func New(logDir string) (*slog.Logger, error) {
-	logsDir := filepath.Join(logDir, "logs")
-	if err := os.MkdirAll(logsDir, 0o755); err != nil {
-		return nil, err
-	}
-	fileWriter := &lumberjack.Logger{
-		Filename:   filepath.Join(logsDir, "app.log"),
-		MaxSize:    50,
-		MaxBackups: 0,
-		MaxAge:     0,
-		Compress:   false,
-	}
-	mw := io.MultiWriter(os.Stdout, fileWriter)
+func New() *slog.Logger {
 	opts := &slog.HandlerOptions{
 		Level: parseLevel(os.Getenv("LOG_LEVEL")),
 	}
-	h := slog.NewTextHandler(mw, opts)
-	return slog.New(h), nil
+	h := slog.NewTextHandler(os.Stdout, opts)
+	return slog.New(h)
 }
 
 func parseLevel(s string) slog.Level {

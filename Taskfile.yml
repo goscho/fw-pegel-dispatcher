@@ -20,9 +20,9 @@ tasks:
 
   build-image:
     internal: true
-    #preconditions:
-    #  - sh: '[ `git status --porcelain=1 | wc -l` -eq 0 ]'
-    #    msg: Working directory is not clean. Please commit all changes to prevent untracked files in the docker build context.
+    preconditions:
+      - sh: '[ `git status --porcelain=1 | wc -l` -eq 0 ]'
+        msg: Working directory is not clean. Please commit all changes to prevent untracked files in the docker build context.
     vars:
       CONTAINER_REGISTRY: registry.ffm.internal
       IMAGE_NAME: fw-pegel-dispatcher

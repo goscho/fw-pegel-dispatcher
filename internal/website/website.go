@@ -58,14 +58,22 @@ func (c *Client) update(value float32, path string) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-API-Key", c.APIKey)
+
 	resp, err := c.HTTP.Do(req)
 	if err != nil {
 		return fmt.Errorf("website request: %w", err)
 	}
+
 	defer resp.Body.Close()
-	_, _ = io.Copy(io.Discard, resp.Body)
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("website: HTTP %d", resp.StatusCode)
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("website: HTTP %d (could not read body: %v)", resp.StatusCode, err)
+		}
+		return fmt.Errorf("website: HTTP %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
+
+	_, _ = io.Copy(io.Discard, resp.Body)
 	return nil
 }

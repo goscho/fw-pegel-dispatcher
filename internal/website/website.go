@@ -58,6 +58,7 @@ func (c *Client) update(value float32, path string) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-API-Key", c.APIKey)
+	req.Header.Set("Accept", "application/json")
 
 	resp, err := c.HTTP.Do(req)
 	if err != nil {

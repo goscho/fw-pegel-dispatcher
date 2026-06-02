@@ -14,5 +14,9 @@ vendor/
 ### Logs (runtime) ###
 /logs/
 
-# Secrets
+### Secrets ###
 .env
+
+### misc ###
+.DS_Store
+__pycache__
